@@ -75,6 +75,8 @@ export default async function DashboardPage() {
     widget_key: string;
   } | null = null;
 
+  let companyLoadError = "";
+
   try {
     company = await getJson<{
       id: number;
@@ -83,7 +85,10 @@ export default async function DashboardPage() {
       website: string;
       widget_key: string;
     }>(`/users/${user.id}/company`);
-  } catch {
+  } catch (error) {
+    companyLoadError =
+      error instanceof Error ? error.message : "Unknown company loading error";
+
     company = null;
   }
 
@@ -95,6 +100,9 @@ export default async function DashboardPage() {
           <p className="mt-2 text-gray-600">
             Your account is signed in, but no company is connected yet.
           </p>
+          {companyLoadError && (
+            <p className="mt-2 text-red-500">{companyLoadError}</p>
+          )}
 
           {API_BASE_URL && (
             <CompanySetupForm apiBaseUrl={API_BASE_URL} ownerUserId={user.id} />
