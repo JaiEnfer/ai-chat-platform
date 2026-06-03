@@ -44,6 +44,25 @@ class Settings(BaseSettings):
     environment: str = "local"
     api_prefix: str = "/api"
     database_url: str | None = None
+    cors_allowed_origins: list[str] = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://ai-chat-platform-kappa.vercel.app",
+    ]
+
+    @field_validator("cors_allowed_origins", mode="before")
+    @classmethod
+    def normalize_cors_allowed_origins(
+        cls,
+        value: list[str] | str | None,
+    ) -> list[str]:
+        if value is None:
+            return []
+
+        if isinstance(value, str):
+            return [origin.strip() for origin in value.split(",") if origin.strip()]
+
+        return value
 
     @field_validator("database_url", mode="before")
     @classmethod
