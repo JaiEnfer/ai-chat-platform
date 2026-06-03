@@ -2,6 +2,8 @@ import { KnowledgeItemForm } from "@/components/dashboard/KnowledgeItemForm";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { CompanySetupForm } from "@/components/dashboard/CompanySetupForm";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type Analytics = {
   company_id: number;
@@ -40,6 +42,7 @@ type KnowledgeItem = {
 };
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const CONFIGURED_WIDGET_KEY = process.env.NEXT_PUBLIC_WIDGET_KEY;
 
 async function getJson<T>(path: string): Promise<T> {
   if (!API_BASE_URL) {
@@ -102,6 +105,9 @@ export default async function DashboardPage() {
   }
 
   const companyId = company.id;
+  const hasWidgetKeyMismatch =
+    Boolean(CONFIGURED_WIDGET_KEY) &&
+    CONFIGURED_WIDGET_KEY !== company.widget_key;
 
   const [analytics, leads, conversationMessages, knowledgeItems] =
     await Promise.all([
@@ -121,6 +127,7 @@ export default async function DashboardPage() {
           <p className="mt-1 text-sm text-gray-500">
             Company: {company.name}
           </p>
+          <p className="mt-1 text-sm text-gray-500">Company ID: {company.id}</p>
           <p className="mt-1 text-sm text-gray-500">
             Widget key: {company.widget_key}
           </p>
@@ -128,6 +135,15 @@ export default async function DashboardPage() {
             Leads, chatbot activity, and basic analytics.
           </p>
         </div>
+
+        {hasWidgetKeyMismatch && (
+          <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            Vercel is using widget key <strong>{CONFIGURED_WIDGET_KEY}</strong>,
+            but this signed-in company owns <strong>{company.widget_key}</strong>.
+            Update `NEXT_PUBLIC_WIDGET_KEY` in Vercel to match this company if
+            you want widget leads to appear here.
+          </section>
+        )}
 
         <section className="grid gap-4 md:grid-cols-4">
           <MetricCard title="Leads" value={analytics.total_leads} />
