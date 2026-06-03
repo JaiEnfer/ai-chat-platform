@@ -113,9 +113,7 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="h-[650px] max-w-xl rounded-2xl border bg-white shadow-sm">
-            <ChatWidget widgetKey={company.widget_key} embedded />
-          </div>
+          <ChatWidget widgetKey={company.widget_key} />
         </section>
       )}
     </main>

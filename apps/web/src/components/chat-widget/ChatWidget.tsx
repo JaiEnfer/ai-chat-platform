@@ -180,7 +180,7 @@ export function ChatWidget({ widgetKey, embedded = false }: ChatWidgetProps) {
       className={
         embedded
           ? "flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
-          : "fixed bottom-6 right-6 flex h-[560px] w-[360px] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl"
+          : "fixed bottom-6 right-6 z-50 flex h-[520px] w-[340px] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl"
       }
     >
       <div className="bg-gray-900 px-4 py-3 text-white">
