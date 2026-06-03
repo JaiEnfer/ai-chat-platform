@@ -14,7 +14,12 @@ type ChatResponse = {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const WIDGET_KEY = process.env.NEXT_PUBLIC_WIDGET_KEY;
 
-export function ChatWidget() {
+type ChatWidgetProps = {
+  widgetKey?: string;
+};
+
+export function ChatWidget({ widgetKey }: ChatWidgetProps) {
+  const WIDGET_KEY = widgetKey ?? process.env.NEXT_PUBLIC_WIDGET_KEY;
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "bot",
