@@ -9,6 +9,19 @@ from pydantic_settings import (
 )
 
 
+def is_railway_runtime() -> bool:
+    railway_markers = (
+        "RAILWAY_PROJECT_ID",
+        "RAILWAY_ENVIRONMENT_ID",
+        "RAILWAY_SERVICE_ID",
+        "RAILWAY_DEPLOYMENT_ID",
+        "RAILWAY_PRIVATE_DOMAIN",
+        "RAILWAY_PUBLIC_DOMAIN",
+    )
+
+    return any(os.getenv(marker) for marker in railway_markers)
+
+
 class Settings(BaseSettings):
     app_name: str = "Berlin AI Chatbot Platform"
     environment: str = "local"
@@ -32,10 +45,9 @@ class Settings(BaseSettings):
     @field_validator("database_url")
     @classmethod
     def validate_database_url(cls, value: str) -> str:
-        railway_deploy = bool(os.getenv("RAILWAY_PUBLIC_DOMAIN"))
         hostname = urlsplit(value).hostname
 
-        if railway_deploy and hostname in {"localhost", "127.0.0.1"}:
+        if is_railway_runtime() and hostname in {"localhost", "127.0.0.1"}:
             raise ValueError(
                 "DATABASE_URL points to localhost inside Railway. "
                 "Attach a Railway PostgreSQL service or set DATABASE_URL to a real database."
@@ -52,7 +64,7 @@ class Settings(BaseSettings):
         dotenv_settings: PydanticBaseSettingsSource,
         file_secret_settings: PydanticBaseSettingsSource,
     ) -> tuple[PydanticBaseSettingsSource, ...]:
-        if os.getenv("RAILWAY_PUBLIC_DOMAIN"):
+        if is_railway_runtime():
             return (
                 init_settings,
                 env_settings,
