@@ -43,15 +43,15 @@ class Settings(BaseSettings):
 
     @field_validator("database_url", mode="before")
     @classmethod
-    def normalize_database_url(cls, value: str | None) -> str:
+    def normalize_database_url(cls, value: str | None) -> str | None:
         if not value:
             value = build_database_url_from_parts()
 
+        if value is None:
+            return None
+
         if not isinstance(value, str) or not value.strip():
-            raise ValueError(
-                "DATABASE_URL is not set. Configure DATABASE_URL or the "
-                "PGHOST/PGPORT/PGUSER/PGPASSWORD/PGDATABASE variables."
-            )
+            return None
 
         if value.startswith("postgres://"):
             return "postgresql+psycopg://" + value[len("postgres://") :]
@@ -63,7 +63,10 @@ class Settings(BaseSettings):
 
     @field_validator("database_url")
     @classmethod
-    def validate_database_url(cls, value: str) -> str:
+    def validate_database_url(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+
         hostname = urlsplit(value).hostname
 
         if is_railway_runtime() and hostname in {"localhost", "127.0.0.1"}:
@@ -104,3 +107,15 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def require_database_url() -> str:
+    database_url = settings.database_url
+
+    if not database_url:
+        raise RuntimeError(
+            "Database configuration is missing. Set DATABASE_URL or the "
+            "PGHOST/PGPORT/PGUSER/PGPASSWORD/PGDATABASE variables."
+        )
+
+    return database_url
