@@ -31,9 +31,11 @@ def create_app() -> FastAPI:
         allow_origins=[
             "http://localhost:3000",
             "http://127.0.0.1:3000",
-            "https://ai-chat-platform-kappa.vercel.app/",
-            "https://ai-chat-platform-ma9hkt3lu-prakashjai990-2080s-projects.vercel.app",
         ],
+        allow_origin_regex=(
+            r"https://ai-chat-platform-[a-zA-Z0-9-]+"
+            r"-prakashjai990-2080s-projects\.vercel\.app"
+        ),
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
