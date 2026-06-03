@@ -12,6 +12,7 @@ class LeadCreate(BaseModel):
 
 class LeadRead(BaseModel):
     id: int
+    status: str
     company_id: int
     name: str
     email: str
@@ -23,3 +24,6 @@ class LeadRead(BaseModel):
     model_config = {
         "from_attributes": True,
     }
+
+class LeadStatusUpdate(BaseModel):
+    status: str

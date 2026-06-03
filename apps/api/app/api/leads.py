@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.company import Company
 from app.models.lead import Lead
-from app.schemas.lead import LeadCreate, LeadRead
+from app.schemas.lead import LeadCreate, LeadRead, LeadStatusUpdate
 
 router = APIRouter()
 
@@ -61,3 +61,41 @@ def list_company_leads(
     leads = db.scalars(statement).all()
 
     return list(leads)
+
+@router.patch(
+    "/leads/{lead_id}/status",
+    response_model=LeadRead,
+)
+def update_lead_status(
+    lead_id: int,
+    lead_data: LeadStatusUpdate,
+    db: Session = Depends(get_db),
+) -> Lead:
+    lead = db.get(Lead, lead_id)
+
+    if lead is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Lead not found",
+        )
+
+    allowed_statuses = {
+        "new",
+        "contacted",
+        "converted",
+        "closed",
+    }
+
+    if lead_data.status not in allowed_statuses:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid lead status",
+        )
+
+    lead.status = lead_data.status
+
+    db.add(lead)
+    db.commit()
+    db.refresh(lead)
+
+    return lead

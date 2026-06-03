@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { CompanySetupForm } from "@/components/dashboard/CompanySetupForm";
 import { WebsiteScrapeForm } from "@/components/dashboard/WebsiteScrapeForm";
 import { DeleteKnowledgeButton } from "@/components/dashboard/DeleteKnowledgeButton";
+import { LeadStatusSelect } from "@/components/dashboard/LeadStatusSelect";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -24,6 +25,7 @@ type Lead = {
   email: string;
   phone: string | null;
   message: string | null;
+  status: string;
   created_at: string;
 };
 
@@ -195,6 +197,7 @@ export default async function DashboardPage() {
                   <th className="py-2">Email</th>
                   <th className="py-2">Phone</th>
                   <th className="py-2">Message</th>
+                  <th className="py-2">Status</th>
                 </tr>
               </thead>
 
@@ -205,6 +208,19 @@ export default async function DashboardPage() {
                     <td className="py-3">{lead.email}</td>
                     <td className="py-3">{lead.phone ?? "-"}</td>
                     <td className="py-3">{lead.message ?? "-"}</td>
+                    <td className="py-3">
+                      {API_BASE_URL ? (
+                        <LeadStatusSelect
+                          apiBaseUrl={API_BASE_URL}
+                          leadId={lead.id}
+                          currentStatus={lead.status}
+                        />
+                      ) : (
+                        <span className="text-sm text-gray-500">
+                          {lead.status}
+                        </span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

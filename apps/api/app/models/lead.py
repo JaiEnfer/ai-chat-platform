@@ -3,6 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.database import Base
 from app.models.mixins import TimestampMixin
+from sqlalchemy import String
 
 
 class Lead(TimestampMixin, Base):
@@ -34,4 +35,10 @@ class Lead(TimestampMixin, Base):
     message: Mapped[str | None] = mapped_column(
         Text,
         nullable=True,
+    )
+
+    status: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        default="new",
     )
