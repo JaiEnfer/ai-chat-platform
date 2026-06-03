@@ -69,6 +69,7 @@ export default async function DashboardPage() {
     owner_user_id: string;
     name: string;
     website: string;
+    widget_key: string;
   } | null = null;
 
   try {
@@ -77,6 +78,7 @@ export default async function DashboardPage() {
       owner_user_id: string;
       name: string;
       website: string;
+      widget_key: string;
     }>(`/users/${user.id}/company`);
   } catch {
     company = null;
@@ -118,6 +120,9 @@ export default async function DashboardPage() {
           <h1 className="text-3xl font-bold">Business Dashboard</h1>
           <p className="mt-1 text-sm text-gray-500">
             Company: {company.name}
+          </p>
+          <p className="mt-1 text-sm text-gray-500">
+            Widget key: {company.widget_key}
           </p>
           <p className="mt-2 text-gray-600">
             Leads, chatbot activity, and basic analytics.

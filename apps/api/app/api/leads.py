@@ -19,18 +19,14 @@ def create_lead(
     lead_data: LeadCreate,
     db: Session = Depends(get_db),
 ) -> Lead:
-    company: Company | None = None
-
-    if lead_data.company_id is not None:
-        company = db.get(Company, lead_data.company_id)
-    elif lead_data.widget_key:
-        statement = select(Company).where(Company.widget_key == lead_data.widget_key)
-        company = db.scalars(statement).first()
-    else:
+    if not lead_data.widget_key:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="company_id or widget_key is required",
+            detail="widget_key is required",
         )
+
+    statement = select(Company).where(Company.widget_key == lead_data.widget_key)
+    company = db.scalars(statement).first()
 
     if company is None:
         raise HTTPException(
