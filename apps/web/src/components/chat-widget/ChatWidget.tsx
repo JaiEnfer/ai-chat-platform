@@ -12,7 +12,7 @@ type ChatResponse = {
 };
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-const COMPANY_ID = Number(process.env.NEXT_PUBLIC_COMPANY_ID);
+const WIDGET_KEY = process.env.NEXT_PUBLIC_WIDGET_KEY;
 
 export function ChatWidget() {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -52,7 +52,7 @@ export function ChatWidget() {
 
     const trimmedInput = input.trim();
 
-    if (!API_BASE_URL || !COMPANY_ID || !visitorId) {
+    if (!API_BASE_URL || !WIDGET_KEY || !visitorId) {
       return null;
     }
 
@@ -78,7 +78,7 @@ export function ChatWidget() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          company_id: COMPANY_ID,
+          widget_key: WIDGET_KEY,
           visitor_id: visitorId,
           message: trimmedInput,
         }),
@@ -132,7 +132,7 @@ export function ChatWidget() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          company_id: COMPANY_ID,
+          widget_key: WIDGET_KEY,
           name: trimmedName,
           email: trimmedEmail,
           phone: trimmedPhone || null,

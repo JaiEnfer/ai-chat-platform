@@ -1,4 +1,6 @@
 import { KnowledgeItemForm } from "@/components/dashboard/KnowledgeItemForm";
+import { currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
 type Analytics = {
   company_id: number;
@@ -37,7 +39,6 @@ type KnowledgeItem = {
 };
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-const COMPANY_ID = Number(process.env.NEXT_PUBLIC_COMPANY_ID);
 
 async function getJson<T>(path: string): Promise<T> {
   if (!API_BASE_URL) {
@@ -56,14 +57,29 @@ async function getJson<T>(path: string): Promise<T> {
 }
 
 export default async function DashboardPage() {
+  const user = await currentUser();
+
+  if (!user) {
+    redirect("/");
+  }
+
+  const company = await getJson<{
+    id: number;
+    owner_user_id: string;
+    name: string;
+    website: string;
+  }>(`/users/${user.id}/company`);
+
+  const companyId = company.id;
+
   const [analytics, leads, conversationMessages, knowledgeItems] =
     await Promise.all([
-        getJson<Analytics>(`/companies/${COMPANY_ID}/analytics`),
-        getJson<Lead[]>(`/companies/${COMPANY_ID}/leads`),
-        getJson<ConversationMessage[]>(
-        `/companies/${COMPANY_ID}/conversation-messages`,
-        ),
-        getJson<KnowledgeItem[]>(`/companies/${COMPANY_ID}/knowledge-items`),
+      getJson<Analytics>(`/companies/${companyId}/analytics`),
+      getJson<Lead[]>(`/companies/${companyId}/leads`),
+      getJson<ConversationMessage[]>(
+        `/companies/${companyId}/conversation-messages`,
+      ),
+      getJson<KnowledgeItem[]>(`/companies/${companyId}/knowledge-items`),
     ]);
 
   return (
@@ -71,6 +87,9 @@ export default async function DashboardPage() {
       <div className="mx-auto max-w-6xl space-y-8">
         <div>
           <h1 className="text-3xl font-bold">Business Dashboard</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Company: {company.name}
+          </p>
           <p className="mt-2 text-gray-600">
             Leads, chatbot activity, and basic analytics.
           </p>
@@ -125,28 +144,28 @@ export default async function DashboardPage() {
         </section>
 
         <section className="rounded-2xl bg-white p-5 shadow-sm">
-            <h2 className="text-xl font-semibold">Chatbot Knowledge</h2>
-            <p className="mt-1 text-sm text-gray-500">
-                Add facts the chatbot should use when answering visitors.
-            </p>
+          <h2 className="text-xl font-semibold">Chatbot Knowledge</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Add facts the chatbot should use when answering visitors.
+          </p>
 
-            {API_BASE_URL && (
-                <KnowledgeItemForm apiBaseUrl={API_BASE_URL} companyId={COMPANY_ID} />
+          {API_BASE_URL && (
+            <KnowledgeItemForm apiBaseUrl={API_BASE_URL} companyId={companyId} />
+          )}
+
+          <div className="mt-6 space-y-3">
+            {knowledgeItems.map((item) => (
+              <div key={item.id} className="rounded-xl border p-4">
+                <p className="font-medium">{item.title}</p>
+                <p className="mt-1 text-sm text-gray-600">{item.content}</p>
+              </div>
+            ))}
+
+            {knowledgeItems.length === 0 && (
+              <p className="text-sm text-gray-500">No knowledge items yet.</p>
             )}
-
-            <div className="mt-6 space-y-3">
-                {knowledgeItems.map((item) => (
-                <div key={item.id} className="rounded-xl border p-4">
-                    <p className="font-medium">{item.title}</p>
-                    <p className="mt-1 text-sm text-gray-600">{item.content}</p>
-                </div>
-                ))}
-
-                {knowledgeItems.length === 0 && (
-                <p className="text-sm text-gray-500">No knowledge items yet.</p>
-                )}
-            </div>
-            </section>
+          </div>
+        </section>
 
         <section className="rounded-2xl bg-white p-5 shadow-sm">
           <h2 className="text-xl font-semibold">Recent Conversations</h2>
