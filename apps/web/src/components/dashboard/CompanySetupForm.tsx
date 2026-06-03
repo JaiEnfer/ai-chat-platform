@@ -8,8 +8,8 @@ type Props = {
 };
 
 export function CompanySetupForm({ apiBaseUrl, ownerUserId }: Props) {
-  const [name, setName] = useState("");
-  const [website, setWebsite] = useState("");
+  const [name, setName] = useState("Testing");
+  const [website, setWebsite] = useState("http://www.testing.com");
   const [statusMessage, setStatusMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 

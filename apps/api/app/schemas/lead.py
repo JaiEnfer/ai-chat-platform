@@ -3,7 +3,8 @@ from datetime import datetime
 
 
 class LeadCreate(BaseModel):
-    company_id: int
+    company_id: int | None = None
+    widget_key: str | None = None
     name: str
     email: EmailStr
     phone: str | None = None
