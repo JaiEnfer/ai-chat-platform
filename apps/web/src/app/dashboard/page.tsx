@@ -134,6 +134,21 @@ export default async function DashboardPage() {
           <p className="mt-2 text-gray-600">
             Leads, chatbot activity, and basic analytics.
           </p>
+
+          <div className="mt-4 rounded-2xl bg-white p-4 shadow-sm">
+            <p className="text-sm font-medium text-gray-900">
+              Your chatbot link
+            </p>
+
+            <p className="mt-2 break-all rounded-xl bg-gray-100 p-3 text-sm text-gray-700">
+              https://ai-chat-platform-kappa.vercel.app/widget/
+              {company.widget_key}
+            </p>
+
+            <p className="mt-2 text-xs text-gray-500">
+              Share this link to test your company-specific chatbot.
+            </p>
+          </div>
         </div>
 
         {hasWidgetKeyMismatch && (
