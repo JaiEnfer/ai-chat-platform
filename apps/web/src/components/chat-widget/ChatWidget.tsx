@@ -16,10 +16,11 @@ const WIDGET_KEY = process.env.NEXT_PUBLIC_WIDGET_KEY;
 
 type ChatWidgetProps = {
   widgetKey?: string;
+  embedded?: boolean;
 };
 
-export function ChatWidget({ widgetKey }: ChatWidgetProps) {
-  const WIDGET_KEY = widgetKey ?? process.env.NEXT_PUBLIC_WIDGET_KEY;
+export function ChatWidget({ widgetKey, embedded = false }: ChatWidgetProps) {
+  const resolvedWidgetKey = widgetKey ?? WIDGET_KEY;
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "bot",
@@ -57,7 +58,7 @@ export function ChatWidget({ widgetKey }: ChatWidgetProps) {
 
     const trimmedInput = input.trim();
 
-    if (!API_BASE_URL || !WIDGET_KEY || !visitorId) {
+    if (!API_BASE_URL || !resolvedWidgetKey || !visitorId) {
       return null;
     }
 
@@ -83,7 +84,7 @@ export function ChatWidget({ widgetKey }: ChatWidgetProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          widget_key: WIDGET_KEY,
+          widget_key: resolvedWidgetKey,
           visitor_id: visitorId,
           message: trimmedInput,
         }),
@@ -137,7 +138,7 @@ export function ChatWidget({ widgetKey }: ChatWidgetProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          widget_key: WIDGET_KEY,
+          widget_key: resolvedWidgetKey,
           name: trimmedName,
           email: trimmedEmail,
           phone: trimmedPhone || null,
@@ -175,7 +176,13 @@ export function ChatWidget({ widgetKey }: ChatWidgetProps) {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 flex h-[560px] w-[360px] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl">
+    <div
+      className={
+        embedded
+          ? "flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+          : "fixed bottom-6 right-6 flex h-[560px] w-[360px] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl"
+      }
+    >
       <div className="bg-gray-900 px-4 py-3 text-white">
         <h2 className="text-sm font-semibold">AI Assistant</h2>
         <p className="text-xs text-gray-300">Usually replies instantly</p>

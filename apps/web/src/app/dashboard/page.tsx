@@ -1,7 +1,9 @@
+import { ChatWidget } from "@/components/chat-widget/ChatWidget";
 import { KnowledgeItemForm } from "@/components/dashboard/KnowledgeItemForm";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { CompanySetupForm } from "@/components/dashboard/CompanySetupForm";
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -152,6 +154,17 @@ export default async function DashboardPage() {
             you want widget leads to appear here.
           </section>
         )}
+
+        <section className="rounded-2xl bg-white p-5 shadow-sm">
+          <h2 className="text-xl font-semibold">Test AI Assistant</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Test how your chatbot responds before sharing it with customers.
+          </p>
+
+          <div className="mt-6 h-[600px] rounded-2xl border bg-gray-50">
+            <ChatWidget widgetKey={company.widget_key} embedded />
+          </div>
+        </section>
 
         <section className="grid gap-4 md:grid-cols-4">
           <MetricCard title="Leads" value={analytics.total_leads} />
