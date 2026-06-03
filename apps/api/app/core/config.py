@@ -35,6 +35,10 @@ def build_database_url_from_parts() -> str | None:
     return f"postgresql+psycopg://{user}:{password}@{host}:{port}/{database}"
 
 
+def get_local_default_database_url() -> str:
+    return "postgresql+psycopg://chatbot:chatbot@localhost:5432/chatbot_db"
+
+
 class Settings(BaseSettings):
     app_name: str = "Berlin AI Chatbot Platform"
     environment: str = "local"
@@ -46,6 +50,9 @@ class Settings(BaseSettings):
     def normalize_database_url(cls, value: str | None) -> str | None:
         if not value:
             value = build_database_url_from_parts()
+
+        if not value and not is_railway_runtime():
+            value = get_local_default_database_url()
 
         if value is None:
             return None
