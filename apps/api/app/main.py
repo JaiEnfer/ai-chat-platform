@@ -9,6 +9,7 @@ from app.api.health import router as health_router
 from app.api.knowledge_items import router as knowledge_items_router
 from app.api.leads import router as leads_router
 from app.core.config import settings
+from app.api.health import build_health_payload
 
 
 def create_app() -> FastAPI:
@@ -16,6 +17,14 @@ def create_app() -> FastAPI:
         title=settings.app_name,
         version="0.1.0",
     )
+
+    @app.get("/")
+    def root() -> dict[str, str]:
+        return build_health_payload()
+
+    @app.get("/health")
+    def health() -> dict[str, str]:
+        return build_health_payload()
 
     app.add_middleware(
         CORSMiddleware,

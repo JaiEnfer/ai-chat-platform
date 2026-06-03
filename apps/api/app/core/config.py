@@ -22,17 +22,36 @@ def is_railway_runtime() -> bool:
     return any(os.getenv(marker) for marker in railway_markers)
 
 
+def build_database_url_from_parts() -> str | None:
+    host = os.getenv("PGHOST")
+    port = os.getenv("PGPORT")
+    user = os.getenv("PGUSER")
+    password = os.getenv("PGPASSWORD")
+    database = os.getenv("PGDATABASE")
+
+    if not all((host, port, user, password, database)):
+        return None
+
+    return f"postgresql+psycopg://{user}:{password}@{host}:{port}/{database}"
+
+
 class Settings(BaseSettings):
     app_name: str = "Berlin AI Chatbot Platform"
     environment: str = "local"
     api_prefix: str = "/api"
-    database_url: str
+    database_url: str | None = None
 
     @field_validator("database_url", mode="before")
     @classmethod
-    def normalize_database_url(cls, value: str) -> str:
-        if not isinstance(value, str):
-            return value
+    def normalize_database_url(cls, value: str | None) -> str:
+        if not value:
+            value = build_database_url_from_parts()
+
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(
+                "DATABASE_URL is not set. Configure DATABASE_URL or the "
+                "PGHOST/PGPORT/PGUSER/PGPASSWORD/PGDATABASE variables."
+            )
 
         if value.startswith("postgres://"):
             return "postgresql+psycopg://" + value[len("postgres://") :]

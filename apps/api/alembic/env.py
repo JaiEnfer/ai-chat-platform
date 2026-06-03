@@ -10,6 +10,7 @@ from app.models.company import Company
 from app.models.lead import Lead
 from app.models.knowledge_item import KnowledgeItem
 from app.models.conversation_message import ConversationMessage
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -44,17 +45,9 @@ def run_migrations_offline() -> None:
 
     """
     database_url = settings.database_url
-
-    if database_url.startswith("postgresql://"):
-        database_url = database_url.replace(
-            "postgresql://",
-            "postgresql+psycopg://",
-            1,
-        )
-
     config.set_main_option("sqlalchemy.url", database_url)
     context.configure(
-        url=url,
+        url=database_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -71,6 +64,7 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    config.set_main_option("sqlalchemy.url", settings.database_url)
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
