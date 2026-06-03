@@ -4,6 +4,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { CompanySetupForm } from "@/components/dashboard/CompanySetupForm";
 import { WebsiteScrapeForm } from "@/components/dashboard/WebsiteScrapeForm";
+import { DeleteKnowledgeButton } from "@/components/dashboard/DeleteKnowledgeButton";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -234,6 +235,12 @@ export default async function DashboardPage() {
               <div key={item.id} className="rounded-xl border p-4">
                 <p className="font-medium">{item.title}</p>
                 <p className="mt-1 text-sm text-gray-600">{item.content}</p>
+                {API_BASE_URL && (
+                  <DeleteKnowledgeButton
+                    apiBaseUrl={API_BASE_URL}
+                    itemId={item.id}
+                  />
+                )}
               </div>
             ))}
 

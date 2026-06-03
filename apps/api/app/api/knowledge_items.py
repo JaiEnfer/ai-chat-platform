@@ -55,3 +55,22 @@ def list_company_knowledge_items(
     items = db.scalars(statement).all()
 
     return list(items)
+
+@router.delete(
+    "/knowledge-items/{item_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_knowledge_item(
+    item_id: int,
+    db: Session = Depends(get_db),
+) -> None:
+    item = db.get(KnowledgeItem, item_id)
+
+    if item is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Knowledge item not found",
+        )
+
+    db.delete(item)
+    db.commit()
