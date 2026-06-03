@@ -8,6 +8,18 @@ Recommended:
 - DigitalOcean
 - AWS
 
+### Railway Setup
+
+For this monorepo, configure the API Railway service with:
+- Root Directory: `apps/api`
+- Healthcheck Path: `/health`
+
+Add a PostgreSQL service in the same Railway project, then expose one of:
+- `DATABASE_URL`
+- or `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE`
+
+Do not set `DATABASE_URL` to `localhost` or `127.0.0.1` on Railway.
+
 ## Frontend Deployment
 
 Recommended:
@@ -18,6 +30,13 @@ Recommended:
 ### Backend
 
 DATABASE_URL=
+
+Optional alternative:
+- PGHOST=
+- PGPORT=
+- PGUSER=
+- PGPASSWORD=
+- PGDATABASE=
 
 ### Frontend
 

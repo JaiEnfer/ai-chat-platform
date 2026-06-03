@@ -40,14 +40,19 @@ export function KnowledgeItemForm(props: KnowledgeItemFormProps) {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create knowledge item");
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to create knowledge item");
       }
 
       setTitle("");
       setContent("");
       setStatusMessage("Knowledge item added. Refresh the page to see it.");
-    } catch {
-      setStatusMessage("Could not add knowledge item. Please try again.");
+    } catch (error) {
+      setStatusMessage(
+        error instanceof Error
+          ? `Could not add knowledge item: ${error.message}`
+          : "Could not add knowledge item. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -75,7 +80,7 @@ export function KnowledgeItemForm(props: KnowledgeItemFormProps) {
         disabled={isSubmitting}
         className="rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
       >
-        Add Knowledge
+        {isSubmitting ? "Adding..." : "Add Knowledge"}
       </button>
 
       {statusMessage && <p className="text-sm text-gray-600">{statusMessage}</p>}
