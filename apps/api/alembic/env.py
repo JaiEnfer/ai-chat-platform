@@ -4,7 +4,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-
+from app.core.config import settings
 from app.db.database import Base
 from app.models.company import Company
 from app.models.lead import Lead
@@ -43,7 +43,16 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    database_url = settings.database_url
+
+    if database_url.startswith("postgresql://"):
+        database_url = database_url.replace(
+            "postgresql://",
+            "postgresql+psycopg://",
+            1,
+        )
+
+    config.set_main_option("sqlalchemy.url", database_url)
     context.configure(
         url=url,
         target_metadata=target_metadata,
