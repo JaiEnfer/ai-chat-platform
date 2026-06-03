@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 from app.db.session import get_db
 from app.models.company import Company
@@ -18,6 +19,7 @@ def create_company(
     db: Session = Depends(get_db),
 ) -> Company:
     company = Company(
+        owner_user_id=company_data.owner_user_id.strip(),
         name=company_data.name.strip(),
         website=str(company_data.website),
     )
@@ -38,6 +40,28 @@ def get_company(
     db: Session = Depends(get_db),
 ) -> Company:
     company = db.get(Company, company_id)
+
+    if company is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Company not found",
+        )
+
+    return company
+
+@router.get(
+    "/users/{owner_user_id}/company",
+    response_model=CompanyRead,
+)
+def get_company_by_owner(
+    owner_user_id: str,
+    db: Session = Depends(get_db),
+) -> Company:
+    statement = select(Company).where(
+        Company.owner_user_id == owner_user_id,
+    )
+
+    company = db.scalars(statement).first()
 
     if company is None:
         raise HTTPException(

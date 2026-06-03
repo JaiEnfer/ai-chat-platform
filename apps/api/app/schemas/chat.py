@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 
 class ChatRequest(BaseModel):
-    company_id: int
+    widget_key: str
     visitor_id: str
     message: str
 

@@ -81,8 +81,11 @@ def chat(
     chat_request: ChatRequest,
     db: Session = Depends(get_db),
 ) -> ChatResponse:
-    company = db.get(Company, chat_request.company_id)
+    statement = select(Company).where(
+        Company.widget_key == chat_request.widget_key,
+    )
 
+    company = db.scalars(statement).first()
     if company is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -90,7 +93,7 @@ def chat(
         )
 
     statement = select(KnowledgeItem).where(
-        KnowledgeItem.company_id == chat_request.company_id,
+        KnowledgeItem.company_id == company.id,
     )
 
     knowledge_items = list(db.scalars(statement).all())
@@ -101,7 +104,7 @@ def chat(
     )
 
     conversation_message = ConversationMessage(
-        company_id=chat_request.company_id,
+        company_id=company.id,
         visitor_id=chat_request.visitor_id.strip(),
         user_message=chat_request.message.strip(),
         bot_answer=response.answer,
