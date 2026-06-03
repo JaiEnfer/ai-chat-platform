@@ -63,12 +63,36 @@ export default async function DashboardPage() {
     redirect("/");
   }
 
-  const company = await getJson<{
+  let company: {
     id: number;
     owner_user_id: string;
     name: string;
     website: string;
-  }>(`/users/${user.id}/company`);
+  } | null = null;
+
+  try {
+    company = await getJson<{
+      id: number;
+      owner_user_id: string;
+      name: string;
+      website: string;
+    }>(`/users/${user.id}/company`);
+  } catch {
+    company = null;
+  }
+
+  if (!company) {
+    return (
+      <main className="min-h-screen bg-gray-100 p-8 text-gray-900">
+        <div className="mx-auto max-w-3xl rounded-2xl bg-white p-6 shadow-sm">
+          <h1 className="text-2xl font-bold">Set up your company</h1>
+          <p className="mt-2 text-gray-600">
+            Your account is signed in, but no company is connected yet.
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   const companyId = company.id;
 
