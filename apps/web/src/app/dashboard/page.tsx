@@ -3,6 +3,7 @@ import { KnowledgeItemForm } from "@/components/dashboard/KnowledgeItemForm";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { CompanySetupForm } from "@/components/dashboard/CompanySetupForm";
+import { WebsiteScrapeForm } from "@/components/dashboard/WebsiteScrapeForm";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -219,6 +220,10 @@ export default async function DashboardPage() {
           <p className="mt-1 text-sm text-gray-500">
             Add facts the chatbot should use when answering visitors.
           </p>
+
+          {API_BASE_URL && (
+            <WebsiteScrapeForm apiBaseUrl={API_BASE_URL} companyId={companyId} />
+          )}
 
           {API_BASE_URL && (
             <KnowledgeItemForm apiBaseUrl={API_BASE_URL} companyId={companyId} />

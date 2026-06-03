@@ -10,6 +10,7 @@ from app.api.knowledge_items import router as knowledge_items_router
 from app.api.leads import router as leads_router
 from app.core.config import settings
 from app.api.health import build_health_payload
+from app.api.website_scrape import router as website_scrape_router
 
 
 def create_app() -> FastAPI:
@@ -50,7 +51,7 @@ def create_app() -> FastAPI:
         tags=["conversation-messages"],
     )
     app.include_router(analytics_router, prefix=settings.api_prefix, tags=["analytics"])
-
+    app.include_router(website_scrape_router, prefix=settings.api_prefix, tags=["website-scrape"])
     return app
 
 
