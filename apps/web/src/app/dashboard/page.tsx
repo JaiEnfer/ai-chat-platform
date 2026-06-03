@@ -1,6 +1,7 @@
 import { KnowledgeItemForm } from "@/components/dashboard/KnowledgeItemForm";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { CompanySetupForm } from "@/components/dashboard/CompanySetupForm";
 
 type Analytics = {
   company_id: number;
@@ -89,6 +90,10 @@ export default async function DashboardPage() {
           <p className="mt-2 text-gray-600">
             Your account is signed in, but no company is connected yet.
           </p>
+
+          {API_BASE_URL && (
+            <CompanySetupForm apiBaseUrl={API_BASE_URL} ownerUserId={user.id} />
+          )}
         </div>
       </main>
     );
