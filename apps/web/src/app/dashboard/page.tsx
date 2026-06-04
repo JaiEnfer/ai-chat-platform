@@ -1,4 +1,3 @@
-import { ChatWidget } from "@/components/chat-widget/ChatWidget";
 import { KnowledgeItemForm } from "@/components/dashboard/KnowledgeItemForm";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
@@ -152,28 +151,13 @@ export default async function DashboardPage() {
       <div suppressHydrationWarning className="mx-auto max-w-6xl space-y-8">
         <div>
           <h1 className="text-3xl font-bold">Business Dashboard</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Company: {company.name}
-          </p>
-          <p className="mt-1 text-sm text-gray-500">Company ID: {company.id}</p>
-          <p className="mt-1 text-sm text-gray-500">
-            Widget key: {company.widget_key}
+          <p className="mt-3 text-2xl font-semibold text-gray-900">
+            {company.name}
           </p>
           <p className="mt-2 text-gray-600">
             Leads, chatbot activity, and basic analytics.
           </p>
         </div>
-
-        <section className="rounded-2xl bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-semibold">Test AI Assistant</h2>
-          <p className="mt-1 text-sm text-gray-500">
-            Test how your chatbot responds before sharing it with customers.
-          </p>
-
-          <div className="mt-6 h-[600px] rounded-2xl border bg-gray-50">
-            <ChatWidget widgetKey={company.widget_key} embedded />
-          </div>
-        </section>
 
         <section className="grid gap-4 md:grid-cols-4">
           <MetricCard title="Leads" value={analytics.total_leads} />
