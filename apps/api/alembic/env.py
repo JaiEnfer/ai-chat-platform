@@ -10,6 +10,7 @@ from app.models.company import Company
 from app.models.lead import Lead
 from app.models.knowledge_item import KnowledgeItem
 from app.models.conversation_message import ConversationMessage
+from app.models.knowledge_chunk import KnowledgeChunk
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

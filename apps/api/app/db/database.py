@@ -35,3 +35,5 @@ def get_session_factory() -> sessionmaker:
         )
 
     return _session_factory
+
+SessionLocal = get_session_factory()

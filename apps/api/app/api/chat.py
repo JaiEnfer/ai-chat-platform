@@ -9,6 +9,7 @@ from app.models.company import Company
 from app.models.conversation_message import ConversationMessage
 from app.models.knowledge_item import KnowledgeItem
 from app.schemas.chat import ChatRequest, ChatResponse
+from app.services.retrieval_service import retrieve_relevant_chunks
 
 router = APIRouter()
 
@@ -92,16 +93,41 @@ def chat(
             detail="Company not found",
         )
 
-    statement = select(KnowledgeItem).where(
-        KnowledgeItem.company_id == company.id,
+    relevant_chunks = retrieve_relevant_chunks(
+        db=db,
+        company_id=company.id,
+        query=chat_request.message,
     )
 
-    knowledge_items = list(db.scalars(statement).all())
+    if relevant_chunks:
+        best_chunk = relevant_chunks[0]
 
-    response = build_chat_response(
-        message=chat_request.message,
-        knowledge_items=knowledge_items,
-    )
+        response = ChatResponse(
+            answer=best_chunk.content,
+            should_collect_lead=any(
+                keyword in chat_request.message.lower()
+                for keyword in [
+                    "appointment",
+                    "booking",
+                    "book",
+                    "contact",
+                    "call",
+                    "consultation",
+                    "schedule",
+                ]
+            ),
+        )
+    else:
+        statement = select(KnowledgeItem).where(
+            KnowledgeItem.company_id == company.id,
+        )
+
+        knowledge_items = list(db.scalars(statement).all())
+
+        response = build_chat_response(
+            message=chat_request.message,
+            knowledge_items=knowledge_items,
+        )
 
     conversation_message = ConversationMessage(
         company_id=company.id,

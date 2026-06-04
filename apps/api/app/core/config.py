@@ -8,7 +8,6 @@ from pydantic_settings import (
     SettingsConfigDict,
 )
 
-
 def is_railway_runtime() -> bool:
     railway_markers = (
         "RAILWAY_PROJECT_ID",
@@ -44,6 +43,8 @@ class Settings(BaseSettings):
     environment: str = "local"
     api_prefix: str = "/api"
     database_url: str | None = None
+    embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
+    embedding_dimension: int = 384
     cors_allowed_origins: list[str] = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",

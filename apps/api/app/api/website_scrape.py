@@ -7,6 +7,8 @@ from app.models.knowledge_item import KnowledgeItem
 from app.schemas.website_scrape import WebsiteScrapeRequest, WebsiteScrapeResponse
 from app.services.text_chunker import chunk_text
 from app.services.website_scraper import scrape_website_text
+from app.models.knowledge_chunk import KnowledgeChunk
+from app.services.embedding_service import create_embedding
 
 router = APIRouter()
 
@@ -50,7 +52,16 @@ def scrape_company_website(
             title=f"Website Content {index}",
             content=chunk,
         )
+
+        knowledge_chunk = KnowledgeChunk(
+            company_id=company_id,
+            source=str(scrape_data.url),
+            content=chunk,
+            embedding=create_embedding(chunk),
+        )
+
         db.add(item)
+        db.add(knowledge_chunk)
 
     db.commit()
 
