@@ -10,10 +10,24 @@ from app.models.conversation_message import ConversationMessage
 from app.models.knowledge_item import KnowledgeItem
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.services.retrieval_service import retrieve_relevant_chunks
+from app.services.answer_service import (
+    build_extractive_answer,
+    build_natural_fallback_answer,
+)
+from app.services.groq_service import generate_answer_with_groq
 
 router = APIRouter()
 
 MIN_KEYWORD_LENGTH = 4
+LEAD_INTENT_KEYWORDS = {
+    "appointment",
+    "booking",
+    "book",
+    "contact",
+    "call",
+    "consultation",
+    "schedule",
+}
 
 
 def extract_keywords(text: str) -> set[str]:
@@ -48,20 +62,10 @@ def build_chat_response(
         knowledge_keywords = title_keywords | content_keywords
 
         if user_keywords & knowledge_keywords:
-            lead_intent_keywords = {
-                "appointment",
-                "booking",
-                "book",
-                "contact",
-                "call",
-                "consultation",
-                "schedule",
-            }
-
-            should_collect_lead = bool(user_keywords & lead_intent_keywords)
+            should_collect_lead = bool(user_keywords & LEAD_INTENT_KEYWORDS)
 
             return ChatResponse(
-                answer=item.content,
+                answer=build_natural_fallback_answer([item.content], max_sentences=2),
                 should_collect_lead=should_collect_lead,
             )
 
@@ -82,6 +86,9 @@ def chat(
     chat_request: ChatRequest,
     db: Session = Depends(get_db),
 ) -> ChatResponse:
+    normalized_message = chat_request.message.strip()
+    normalized_visitor_id = chat_request.visitor_id.strip()
+
     statement = select(Company).where(
         Company.widget_key == chat_request.widget_key,
     )
@@ -96,25 +103,28 @@ def chat(
     relevant_chunks = retrieve_relevant_chunks(
         db=db,
         company_id=company.id,
-        query=chat_request.message,
+        query=normalized_message,
     )
 
     if relevant_chunks:
-        best_chunk = relevant_chunks[0]
+        context_chunks = [chunk.content for chunk in relevant_chunks]
+
+        answer = generate_answer_with_groq(
+            question=normalized_message,
+            context_chunks=context_chunks,
+        )
+
+        if not answer:
+            answer = build_extractive_answer(
+                question=normalized_message,
+                context_chunks=context_chunks,
+            )
 
         response = ChatResponse(
-            answer=best_chunk.content,
+            answer=answer,
             should_collect_lead=any(
-                keyword in chat_request.message.lower()
-                for keyword in [
-                    "appointment",
-                    "booking",
-                    "book",
-                    "contact",
-                    "call",
-                    "consultation",
-                    "schedule",
-                ]
+                keyword in normalized_message.lower()
+                for keyword in LEAD_INTENT_KEYWORDS
             ),
         )
     else:
@@ -125,14 +135,14 @@ def chat(
         knowledge_items = list(db.scalars(statement).all())
 
         response = build_chat_response(
-            message=chat_request.message,
+            message=normalized_message,
             knowledge_items=knowledge_items,
         )
 
     conversation_message = ConversationMessage(
         company_id=company.id,
-        visitor_id=chat_request.visitor_id.strip(),
-        user_message=chat_request.message.strip(),
+        visitor_id=normalized_visitor_id,
+        user_message=normalized_message,
         bot_answer=response.answer,
         should_collect_lead=response.should_collect_lead,
     )

@@ -5,7 +5,10 @@ sqlalchemy==2.0.37
 psycopg[binary]==3.2.3
 alembic==1.14.1
 email-validator==2.2.0
-requests
-beautifulsoup4
-sentence-transformers
-pgvector
+python-multipart==0.0.31
+requests==2.34.2
+beautifulsoup4==4.14.3
+sentence-transformers==5.5.1
+groq==1.4.0
+pypdf==6.12.2
+python-docx==1.2.0

@@ -50,6 +50,8 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3000",
         "https://ai-chat-platform-kappa.vercel.app",
     ]
+    groq_api_key: str | None = None
+    groq_model_name: str = "llama-3.3-70b-versatile"
 
     @field_validator("cors_allowed_origins", mode="before")
     @classmethod
@@ -64,6 +66,19 @@ class Settings(BaseSettings):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
 
         return value
+
+    @field_validator("groq_api_key", "groq_model_name", mode="before")
+    @classmethod
+    def normalize_optional_string_settings(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+
+        if not isinstance(value, str):
+            return value
+
+        normalized_value = value.strip()
+
+        return normalized_value or None
 
     @field_validator("database_url", mode="before")
     @classmethod

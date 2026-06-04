@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -61,6 +61,37 @@ def list_company_leads(
     leads = db.scalars(statement).all()
 
     return list(leads)
+
+
+@router.delete("/companies/{company_id}/leads")
+def clear_company_leads(
+    company_id: int,
+    db: Session = Depends(get_db),
+) -> dict[str, int]:
+    result = db.execute(delete(Lead).where(Lead.company_id == company_id))
+    db.commit()
+
+    return {"deleted_count": result.rowcount or 0}
+
+
+@router.delete("/leads/{lead_id}")
+def delete_lead(
+    lead_id: int,
+    db: Session = Depends(get_db),
+) -> dict[str, int]:
+    lead = db.get(Lead, lead_id)
+
+    if lead is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Lead not found",
+        )
+
+    db.delete(lead)
+    db.commit()
+
+    return {"deleted_id": lead_id}
+
 
 @router.patch(
     "/leads/{lead_id}/status",

@@ -30,6 +30,7 @@ Recommended:
 ### Backend
 
 DATABASE_URL=
+GROQ_API_KEY=
 
 Optional alternative:
 - PGHOST=
@@ -40,13 +41,15 @@ Optional alternative:
 
 ### Frontend
 
-NEXT_PUBLIC_API_BASE_URL=
-NEXT_PUBLIC_WIDGET_KEY=
+NEXT_PUBLIC_API_BASE_URL=https://your-api-service.up.railway.app/api
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
 CLERK_SECRET_KEY=
 
 ## Production Notes
 
+- Widget links should use the company-specific route: `/widget/{company.widget_key}`
+- `NEXT_PUBLIC_WIDGET_KEY` is no longer part of the deployment flow
+- Redeploy the frontend after changing any `NEXT_PUBLIC_*` environment variable
 - Enable HTTPS
 - Add authentication
 - Use managed PostgreSQL

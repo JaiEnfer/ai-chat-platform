@@ -12,15 +12,13 @@ type ChatResponse = {
 };
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-const WIDGET_KEY = process.env.NEXT_PUBLIC_WIDGET_KEY;
 
 type ChatWidgetProps = {
-  widgetKey?: string;
+  widgetKey: string;
   embedded?: boolean;
 };
 
 export function ChatWidget({ widgetKey, embedded = false }: ChatWidgetProps) {
-  const resolvedWidgetKey = widgetKey ?? WIDGET_KEY;
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "bot",
@@ -58,7 +56,7 @@ export function ChatWidget({ widgetKey, embedded = false }: ChatWidgetProps) {
 
     const trimmedInput = input.trim();
 
-    if (!API_BASE_URL || !resolvedWidgetKey || !visitorId) {
+    if (!API_BASE_URL || !widgetKey || !visitorId) {
       return null;
     }
 
@@ -84,7 +82,7 @@ export function ChatWidget({ widgetKey, embedded = false }: ChatWidgetProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          widget_key: resolvedWidgetKey,
+          widget_key: widgetKey,
           visitor_id: visitorId,
           message: trimmedInput,
         }),
@@ -138,7 +136,7 @@ export function ChatWidget({ widgetKey, embedded = false }: ChatWidgetProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          widget_key: resolvedWidgetKey,
+          widget_key: widgetKey,
           name: trimmedName,
           email: trimmedEmail,
           phone: trimmedPhone || null,

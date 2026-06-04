@@ -1,8 +1,10 @@
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, ConfigDict, HttpUrl
 from datetime import datetime
 
 
 class CompanyCreate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     owner_user_id: str
     name: str
     website: HttpUrl

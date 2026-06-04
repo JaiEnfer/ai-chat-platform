@@ -42,8 +42,19 @@ export function WebsiteScrapeForm({
       );
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || "Website scraping failed");
+        let errorMessage = "Website scraping failed";
+
+        try {
+          const errorData = (await response.json()) as { detail?: string };
+          errorMessage = errorData.detail || errorMessage;
+        } catch {
+          const errorText = await response.text();
+          if (errorText) {
+            errorMessage = errorText;
+          }
+        }
+
+        throw new Error(errorMessage);
       }
 
       const data = (await response.json()) as {

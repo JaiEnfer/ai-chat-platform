@@ -6,6 +6,10 @@ import { CompanySetupForm } from "@/components/dashboard/CompanySetupForm";
 import { WebsiteScrapeForm } from "@/components/dashboard/WebsiteScrapeForm";
 import { DeleteKnowledgeButton } from "@/components/dashboard/DeleteKnowledgeButton";
 import { LeadStatusSelect } from "@/components/dashboard/LeadStatusSelect";
+import { ClearConversationsButton } from "@/components/dashboard/ClearConversationsButton";
+import { ClearLeadsButton } from "@/components/dashboard/ClearLeadsButton";
+import { LeadActionsMenu } from "@/components/dashboard/LeadActionsMenu";
+import { DeleteAccountButton } from "@/components/dashboard/DeleteAccountButton";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -48,7 +52,6 @@ type KnowledgeItem = {
 };
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-const CONFIGURED_WIDGET_KEY = process.env.NEXT_PUBLIC_WIDGET_KEY;
 
 async function getJson<T>(path: string): Promise<T> {
   if (!API_BASE_URL) {
@@ -60,7 +63,11 @@ async function getJson<T>(path: string): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new Error(`Request failed: ${path}`);
+    const error = new Error(`Request failed: ${path}`) as Error & {
+      status?: number;
+    };
+    error.status = response.status;
+    throw error;
   }
 
   return response.json() as Promise<T>;
@@ -92,8 +99,15 @@ export default async function DashboardPage() {
       widget_key: string;
     }>(`/users/${user.id}/company`);
   } catch (error) {
-    companyLoadError =
-      error instanceof Error ? error.message : "Unknown company loading error";
+    const status =
+      error instanceof Error && "status" in error
+        ? (error as Error & { status?: number }).status
+        : undefined;
+
+    if (status !== 404) {
+      companyLoadError =
+        error instanceof Error ? error.message : "Unknown company loading error";
+    }
 
     company = null;
   }
@@ -119,9 +133,6 @@ export default async function DashboardPage() {
   }
 
   const companyId = company.id;
-  const hasWidgetKeyMismatch =
-    Boolean(CONFIGURED_WIDGET_KEY) &&
-    CONFIGURED_WIDGET_KEY !== company.widget_key;
 
   const [analytics, leads, conversationMessages, knowledgeItems] =
     await Promise.all([
@@ -134,8 +145,11 @@ export default async function DashboardPage() {
     ]);
 
   return (
-    <main className="min-h-screen bg-gray-100 p-8 text-gray-900">
-      <div className="mx-auto max-w-6xl space-y-8">
+    <main
+      suppressHydrationWarning
+      className="min-h-screen bg-gray-100 p-8 text-gray-900"
+    >
+      <div suppressHydrationWarning className="mx-auto max-w-6xl space-y-8">
         <div>
           <h1 className="text-3xl font-bold">Business Dashboard</h1>
           <p className="mt-1 text-sm text-gray-500">
@@ -149,15 +163,6 @@ export default async function DashboardPage() {
             Leads, chatbot activity, and basic analytics.
           </p>
         </div>
-
-        {hasWidgetKeyMismatch && (
-          <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-            Vercel is using widget key <strong>{CONFIGURED_WIDGET_KEY}</strong>,
-            but this signed-in company owns <strong>{company.widget_key}</strong>.
-            Update `NEXT_PUBLIC_WIDGET_KEY` in Vercel to match this company if
-            you want widget leads to appear here.
-          </section>
-        )}
 
         <section className="rounded-2xl bg-white p-5 shadow-sm">
           <h2 className="text-xl font-semibold">Test AI Assistant</h2>
@@ -187,7 +192,21 @@ export default async function DashboardPage() {
         </section>
 
         <section className="rounded-2xl bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-semibold">Recent Leads</h2>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">Recent Leads</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Review or clear captured leads from the chatbot.
+              </p>
+            </div>
+
+            {API_BASE_URL && (
+              <ClearLeadsButton
+                apiBaseUrl={API_BASE_URL}
+                companyId={companyId}
+              />
+            )}
+          </div>
 
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-left text-sm">
@@ -198,6 +217,7 @@ export default async function DashboardPage() {
                   <th className="py-2">Phone</th>
                   <th className="py-2">Message</th>
                   <th className="py-2">Status</th>
+                  <th className="py-2 text-right">Actions</th>
                 </tr>
               </thead>
 
@@ -219,6 +239,14 @@ export default async function DashboardPage() {
                         <span className="text-sm text-gray-500">
                           {lead.status}
                         </span>
+                      )}
+                    </td>
+                    <td className="py-3 text-right">
+                      {API_BASE_URL && (
+                        <LeadActionsMenu
+                          apiBaseUrl={API_BASE_URL}
+                          leadId={lead.id}
+                        />
                       )}
                     </td>
                   </tr>
@@ -267,7 +295,21 @@ export default async function DashboardPage() {
         </section>
 
         <section className="rounded-2xl bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-semibold">Recent Conversations</h2>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">Recent Conversations</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Review or clear stored chatbot interactions.
+              </p>
+            </div>
+
+            {API_BASE_URL && (
+              <ClearConversationsButton
+                apiBaseUrl={API_BASE_URL}
+                companyId={companyId}
+              />
+            )}
+          </div>
 
           <div className="mt-4 space-y-4">
             {conversationMessages.slice(0, 10).map((message) => (
@@ -296,6 +338,29 @@ export default async function DashboardPage() {
 
             {conversationMessages.length === 0 && (
               <p className="text-sm text-gray-500">No conversations yet.</p>
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-red-200 bg-red-50 p-5 shadow-sm">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-red-900">Privacy & Account Deletion</h2>
+              <p className="mt-1 text-sm text-red-800">
+                Permanently delete this company account and remove stored leads,
+                conversations, knowledge items, and knowledge chunks.
+              </p>
+              <p className="mt-1 text-xs text-red-700">
+                Your Clerk sign-in remains active, but your business data in this app
+                will be removed.
+              </p>
+            </div>
+
+            {API_BASE_URL && (
+              <DeleteAccountButton
+                apiBaseUrl={API_BASE_URL}
+                companyId={companyId}
+              />
             )}
           </div>
         </section>

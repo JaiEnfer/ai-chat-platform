@@ -1,7 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class ChatRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     widget_key: str
     visitor_id: str
     message: str

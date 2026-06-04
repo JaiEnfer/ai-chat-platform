@@ -1,8 +1,10 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 from datetime import datetime
 
 
 class LeadCreate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     widget_key: str | None = None
     name: str
     email: EmailStr
