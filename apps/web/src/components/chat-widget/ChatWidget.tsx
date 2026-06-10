@@ -1,6 +1,14 @@
 "use client";
 import { FormEvent, useEffect, useState } from "react";
 
+type ChatSource = {
+  title: string;
+  source_type: string;
+  source_label: string;
+  source_url: string | null;
+  snippet: string;
+};
+
 type ChatMessage = {
   role: "visitor" | "bot";
   text: string;
@@ -9,6 +17,8 @@ type ChatMessage = {
 type ChatResponse = {
   answer: string;
   should_collect_lead: boolean;
+  answer_status: string;
+  sources: ChatSource[];
 };
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -193,7 +203,7 @@ export function ChatWidget({ widgetKey, embedded = false }: ChatWidgetProps) {
             className={
               message.role === "visitor"
                 ? "ml-auto max-w-[80%] rounded-2xl bg-gray-900 px-3 py-2 text-sm text-white"
-                : "mr-auto max-w-[80%] rounded-2xl bg-white px-3 py-2 text-sm text-gray-900 shadow-sm"
+                : "mr-auto max-w-[90%] rounded-2xl bg-white px-3 py-2 text-sm text-gray-900 shadow-sm"
             }
           >
             {message.text}

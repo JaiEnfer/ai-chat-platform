@@ -44,7 +44,8 @@ def create_knowledge_item(
         company_id=item_data.company_id,
         title=item_data.title,
         content=item_data.content,
-        source_label=f"manual:{item_data.title}",
+        source_type="manual",
+        source_label=item_data.title,
     )
     db.commit()
     db.refresh(item)
@@ -83,14 +84,17 @@ def create_knowledge_from_html(
         company_id=company_id,
         title=item_data.title,
         content=extracted_text,
-        source_label=item_data.source_label or f"html:{item_data.title}",
+        source_type="html",
+        source_label=item_data.source_label or item_data.title,
     )
     db.commit()
 
     return KnowledgeImportResponse(
         company_id=company_id,
+        item_id=item.id,
         title=item.title,
         source=item_data.source_label or "html",
+        source_type=item.source_type,
         chunks_created=chunk_count,
     )
 
@@ -148,14 +152,17 @@ async def create_knowledge_from_file(
         company_id=company_id,
         title=resolved_title,
         content=extracted_text,
-        source_label=f"file:{file_name}",
+        source_type="file",
+        source_label=file_name,
     )
     db.commit()
 
     return KnowledgeImportResponse(
         company_id=company_id,
+        item_id=item.id,
         title=item.title,
         source=file_name,
+        source_type=item.source_type,
         chunks_created=chunk_count,
     )
 

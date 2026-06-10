@@ -1,8 +1,10 @@
 import re
 
+from app.services.text_cleanup import normalize_extracted_text
+
 
 def clean_context_text(text: str) -> str:
-    cleaned_text = " ".join(text.split())
+    cleaned_text = normalize_extracted_text(text).replace("\n", " ")
 
     cleaned_text = re.sub(r"\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s*-\s*", r"\1 is ", cleaned_text, count=1)
     cleaned_text = cleaned_text.replace(" | ", ", ")
@@ -74,6 +76,73 @@ def normalize_sentence(sentence: str) -> str:
         cleaned_sentence = f"{cleaned_sentence}."
 
     return cleaned_sentence
+
+
+def choose_indefinite_article(phrase: str) -> str:
+    first_character = phrase[:1].lower()
+
+    if first_character in {"a", "e", "i", "o", "u"}:
+        return "an"
+
+    return "a"
+
+
+def extract_subject_from_question(question: str) -> str | None:
+    match = re.search(
+        r"\b(?:what|who)\s+is\s+([a-zA-Z0-9][a-zA-Z0-9 !&'._-]*)\??$",
+        question.strip(),
+        flags=re.IGNORECASE,
+    )
+
+    if not match:
+        return None
+
+    subject = " ".join(match.group(1).split()).strip(" ?.")
+
+    return subject or None
+
+
+def build_definition_style_answer(question: str, candidate_sentences: list[str]) -> str | None:
+    subject = extract_subject_from_question(question)
+
+    if not subject:
+        return None
+
+    for sentence in candidate_sentences:
+        normalized_sentence = normalize_sentence(sentence)
+
+        if not normalized_sentence:
+            continue
+
+        sentence_without_period = normalized_sentence.rstrip(".!?")
+        lowered_sentence = sentence_without_period.lower()
+        lowered_subject = subject.lower()
+
+        if lowered_subject in lowered_sentence and " is " in lowered_sentence:
+            return normalized_sentence
+
+        primary_clause = sentence_without_period.split(",")[0].strip()
+
+        if not primary_clause:
+            continue
+
+        if " is " in primary_clause.lower():
+            return normalize_sentence(primary_clause)
+
+        words = primary_clause.split()
+
+        if len(words) >= 3 and words[-1][:1].isupper():
+            descriptor = " ".join(words[:-1]).strip().lower()
+            location = words[-1]
+
+            if descriptor:
+                article = choose_indefinite_article(descriptor)
+                return f"{subject} is {article} {descriptor} based in {location}."
+
+        article = choose_indefinite_article(primary_clause.lower())
+        return f"{subject} is {article} {primary_clause.lower()}."
+
+    return None
 
 
 def is_informative_sentence(sentence: str) -> bool:
@@ -187,7 +256,30 @@ def build_extractive_answer(
         for _, sentence in scored_sentences[:max_sentences]
     ]
 
+    definition_style_answer = build_definition_style_answer(
+        question=question,
+        candidate_sentences=selected_sentences,
+    )
+
+    if definition_style_answer:
+        return definition_style_answer
+
     return build_natural_fallback_answer(
         selected_sentences,
         max_sentences=max_sentences,
     )
+
+
+def answer_support_score(answer: str, context_chunks: list[str]) -> int:
+    answer_keywords = extract_keywords(answer)
+
+    if not answer_keywords:
+        return 0
+
+    best_score = 0
+
+    for chunk in context_chunks:
+        chunk_keywords = extract_keywords(chunk)
+        best_score = max(best_score, len(answer_keywords & chunk_keywords))
+
+    return best_score

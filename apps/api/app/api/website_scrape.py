@@ -75,7 +75,9 @@ def scrape_company_website(
             company_id=company_id,
             title=f"Website: {page_title[:120]}",
             content=page_text,
+            source_type="website",
             source_label=f"website:{page_url}",
+            source_url=page_url,
         )
         total_chunks_created += chunk_count
 

@@ -4,12 +4,14 @@ from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 import requests
 
-MAX_WEBSITE_PAGES = 5
-MAX_INTERNAL_LINKS = 12
+from app.services.text_cleanup import normalize_extracted_text
+
+MAX_WEBSITE_PAGES = 10
+MAX_INTERNAL_LINKS = 20
 
 
 def is_human_readable_text(value: str) -> bool:
-    cleaned_value = " ".join(value.split())
+    cleaned_value = normalize_extracted_text(value).replace("\n", " ")
 
     if len(cleaned_value) < 25:
         return False
@@ -104,7 +106,7 @@ def clean_content_blocks(content_blocks: list[str]) -> list[str]:
     }
 
     for block in content_blocks:
-        normalized_block = " ".join(block.split()).strip()
+        normalized_block = normalize_extracted_text(block).replace("\n", " ").strip()
         lowercase_block = normalized_block.lower()
 
         if not normalized_block or lowercase_block in seen_blocks:
@@ -217,6 +219,7 @@ def extract_text_from_script_bundles(
 
         for match in matches:
             normalized_match = " ".join(match.split())
+            normalized_match = normalize_extracted_text(normalized_match).replace("\n", " ")
 
             if normalized_match in seen_blocks:
                 continue
@@ -240,7 +243,12 @@ def extract_internal_links(
     parsed_page_url = urlparse(page_url)
     preferred_keywords = (
         "about",
+        "company",
+        "team",
+        "studio",
+        "about",
         "service",
+        "services",
         "project",
         "work",
         "portfolio",
@@ -249,6 +257,15 @@ def extract_internal_links(
         "faq",
         "product",
         "solution",
+        "career",
+        "careers",
+        "job",
+        "jobs",
+        "hiring",
+        "opening",
+        "openings",
+        "case-study",
+        "case-studies",
     )
     candidate_links: list[str] = []
     seen_links: set[str] = set()
@@ -317,7 +334,13 @@ def extract_page_content(
             metadata_blocks.append(meta_tag["content"].strip())
 
     remove_irrelevant_sections(soup)
-    main_container = soup.body or soup
+    main_container = (
+        soup.find("main")
+        or soup.find("article")
+        or soup.find(attrs={"role": "main"})
+        or soup.body
+        or soup
+    )
 
     content_blocks: list[str] = []
 
@@ -330,12 +353,12 @@ def extract_page_content(
     content_blocks = clean_content_blocks(content_blocks)
 
     if content_blocks:
-        visible_text = " ".join(content_blocks)
+        visible_text = "\n".join(content_blocks)
     else:
         visible_text = main_container.get_text(separator=" ")
 
-    visible_text = " ".join(visible_text.split())
-    cleaned_text = " ".join(" ".join(metadata_blocks + [visible_text]).split())
+    visible_text = normalize_extracted_text(visible_text)
+    cleaned_text = normalize_extracted_text("\n".join(metadata_blocks + [visible_text]))
 
     if len(visible_text) < 120:
         bundle_blocks = extract_text_from_script_bundles(
@@ -347,7 +370,7 @@ def extract_page_content(
 
         if bundle_blocks:
             cleaned_text = " ".join(
-                " ".join(metadata_blocks + bundle_blocks).split()
+                normalize_extracted_text("\n".join(metadata_blocks + bundle_blocks)).split()
             )
 
     if len(cleaned_text) < 40:

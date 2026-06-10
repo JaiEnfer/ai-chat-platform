@@ -4,8 +4,8 @@ from groq import Groq
 from app.core.config import settings
 from app.services.answer_service import dedupe_chunks
 
-MAX_GROQ_CONTEXT_CHUNKS = 2
-MAX_GROQ_CHARS_PER_CHUNK = 900
+MAX_GROQ_CONTEXT_CHUNKS = 4
+MAX_GROQ_CHARS_PER_CHUNK = 1600
 
 
 def generate_answer_with_groq(
@@ -32,14 +32,15 @@ You are a professional customer support AI assistant.
 Answer the user's question using ONLY the context below.
 
 Rules:
-- Be concise
-- Be conversational
-- Sound like a helpful support agent
-- Answer like a real human assistant, not like copied website text
-- Rewrite and summarize the information naturally
-- If information is missing, politely say so
+- Read the provided document and website context carefully before answering
+- Prefer the uploaded file or PDF content when it directly answers the question
+- Be conversational and sound natural, like a helpful human assistant
+- Summarize clearly instead of copying raw text
+- If the answer depends on several parts of the document, combine them into one clear answer
+- If the context does not clearly answer the question, say that you are not fully sure based on the available information
 - Do not invent information
-- Keep the answer to 2 to 4 sentences when possible
+- Do not mention facts that are not present in the context
+- Keep the answer to 2 to 5 sentences when possible
 
 Context:
 {context}
@@ -60,15 +61,18 @@ User question:
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are a helpful customer support assistant.",
+                        "content": (
+                            "You are a helpful customer support assistant who answers "
+                            "using uploaded business documents and website knowledge."
+                        ),
                     },
                     {
                         "role": "user",
                         "content": prompt,
                     },
                 ],
-                temperature=0.3,
-                max_tokens=200,
+                temperature=0.2,
+                max_tokens=260,
             )
 
             message_content = completion.choices[0].message.content

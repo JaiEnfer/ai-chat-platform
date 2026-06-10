@@ -6,9 +6,11 @@ from pathlib import Path
 
 from bs4 import BeautifulSoup
 
+from app.services.text_cleanup import normalize_extracted_text
+
 
 def normalize_text(text: str) -> str:
-    return " ".join(text.split()).strip()
+    return normalize_extracted_text(text)
 
 
 def html_to_text(html: str) -> str:
@@ -26,7 +28,7 @@ def html_to_text(html: str) -> str:
             content_blocks.append(block_text)
 
     if content_blocks:
-        return normalize_text(" ".join(content_blocks))
+        return normalize_text("\n".join(content_blocks))
 
     return normalize_text(soup.get_text(" "))
 
@@ -59,7 +61,7 @@ def parse_uploaded_document(filename: str, file_bytes: bytes) -> str:
         text_stream = io.StringIO(file_bytes.decode("utf-8", errors="ignore"))
         reader = csv.reader(text_stream)
         rows = [" | ".join(cell.strip() for cell in row if cell.strip()) for row in reader]
-        return normalize_text(" ".join(row for row in rows if row))
+        return normalize_text("\n".join(row for row in rows if row))
 
     if extension == ".json":
         data = json.loads(file_bytes.decode("utf-8", errors="ignore"))
@@ -70,14 +72,14 @@ def parse_uploaded_document(filename: str, file_bytes: bytes) -> str:
 
         reader = PdfReader(io.BytesIO(file_bytes))
         page_text = [page.extract_text() or "" for page in reader.pages]
-        return normalize_text(" ".join(page_text))
+        return normalize_text("\n\n".join(page_text))
 
     if extension == ".docx":
         from docx import Document
 
         document = Document(io.BytesIO(file_bytes))
         paragraphs = [paragraph.text.strip() for paragraph in document.paragraphs if paragraph.text.strip()]
-        return normalize_text(" ".join(paragraphs))
+        return normalize_text("\n".join(paragraphs))
 
     raise ValueError(
         "Unsupported file type. Upload txt, md, html, csv, json, pdf, or docx."

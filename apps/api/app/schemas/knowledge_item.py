@@ -20,8 +20,10 @@ class KnowledgeHtmlCreate(BaseModel):
 
 class KnowledgeImportResponse(BaseModel):
     company_id: int
+    item_id: int
     title: str
     source: str
+    source_type: str
     chunks_created: int
 
 
@@ -29,6 +31,10 @@ class KnowledgeItemRead(BaseModel):
     id: int
     company_id: int
     title: str
+    source_type: str
+    source_label: str
+    source_url: str | None
+    chunk_count: int
     content: str
     created_at: datetime
     updated_at: datetime

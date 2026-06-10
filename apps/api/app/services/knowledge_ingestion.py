@@ -16,24 +16,38 @@ def ingest_knowledge_text(
     company_id: int,
     title: str,
     content: str,
+    source_type: str,
     source_label: str,
+    source_url: str | None = None,
 ) -> tuple[KnowledgeItem, int]:
     cleaned_title = " ".join(title.split()).strip()
-    cleaned_content = " ".join(content.split()).strip()
+    cleaned_content = "\n\n".join(
+        " ".join(block.split()).strip()
+        for block in content.split("\n\n")
+        if block.strip()
+    ).strip()
+    cleaned_source_type = " ".join(source_type.split()).strip().lower()
+    cleaned_source_label = " ".join(source_label.split()).strip()
+    cleaned_source_url = " ".join(source_url.split()).strip() if source_url else None
 
-    if not cleaned_title or not cleaned_content:
+    if not cleaned_title or not cleaned_content or not cleaned_source_type or not cleaned_source_label:
         raise ValueError("Knowledge title and content are required.")
+
+    chunks = chunk_text(cleaned_content)
 
     item = KnowledgeItem(
         company_id=company_id,
         title=cleaned_title,
+        source_type=cleaned_source_type,
+        source_label=cleaned_source_label,
+        source_url=cleaned_source_url,
+        chunk_count=len(chunks),
         content=cleaned_content,
     )
     db.add(item)
     db.flush()
 
-    chunks = chunk_text(cleaned_content)
-    source = build_chunk_source(item.id, source_label)
+    source = build_chunk_source(item.id, cleaned_source_label)
 
     for chunk in chunks:
         db.add(

@@ -46,6 +46,10 @@ type KnowledgeItem = {
   id: number;
   company_id: number;
   title: string;
+  source_type: string;
+  source_label: string;
+  source_url: string | null;
+  chunk_count: number;
   content: string;
   created_at: string;
 };
@@ -157,6 +161,15 @@ export default async function DashboardPage() {
           <p className="mt-2 text-gray-600">
             Leads, chatbot activity, and basic analytics.
           </p>
+          <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
+            <p className="text-sm font-semibold text-gray-900">Widget Key</p>
+            <p className="mt-1 break-all font-mono text-sm text-gray-600">
+              {company.widget_key}
+            </p>
+            <p className="mt-2 text-xs text-gray-500">
+              Use this key in your public widget URL or iframe embed.
+            </p>
+          </div>
         </div>
 
         <section className="grid gap-4 md:grid-cols-4">
@@ -261,8 +274,21 @@ export default async function DashboardPage() {
           <div className="mt-6 space-y-3">
             {knowledgeItems.map((item) => (
               <div key={item.id} className="rounded-xl border p-4">
-                <p className="font-medium">{item.title}</p>
-                <p className="mt-1 text-sm text-gray-600">{item.content}</p>
+                <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <p className="font-medium">{item.title}</p>
+                    <p className="mt-1 text-xs uppercase tracking-wide text-gray-500">
+                      {item.source_type} source
+                    </p>
+                    <p className="mt-1 text-sm text-gray-600">
+                      {item.source_url ?? item.source_label}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {item.chunk_count} knowledge chunks
+                    </p>
+                  </div>
+                </div>
+                <p className="mt-3 text-sm text-gray-600">{item.content}</p>
                 {API_BASE_URL && (
                   <DeleteKnowledgeButton
                     apiBaseUrl={API_BASE_URL}
